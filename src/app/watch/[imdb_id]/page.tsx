@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 
-export default function WatchPage({ params }: { params: { imdb_id: string } }) {
-  const { imdb_id } = params;
+export default async function WatchPage({ params }: { params: Promise<{ imdb_id: string }> }) {
+  const { imdb_id } = await params;
   if (!imdb_id) return notFound();
 
   return (

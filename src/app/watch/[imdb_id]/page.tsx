@@ -6,12 +6,7 @@ export default async function WatchPage({ params }: { params: Promise<{ imdb_id:
 
   return (
     <div className="max-w-4xl mx-auto p-4">
-      {/* Ad placeholder */}
-      <div className="mb-4 w-full flex justify-center">
-        <div className="bg-gray-200 dark:bg-gray-700 rounded p-4 text-center w-full max-w-lg">
-          Ad Banner
-        </div>
-      </div>
+      
       <div className="aspect-w-16 aspect-h-9 w-full rounded overflow-hidden mb-4">
         <iframe
           src={`https://vidsrc.icu/embed/movie/${imdb_id}`}

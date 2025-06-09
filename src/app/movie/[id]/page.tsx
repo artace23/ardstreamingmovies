@@ -1,6 +1,7 @@
 import axios from 'axios';
 import Image from 'next/image';
 import Link from 'next/link';
+import ScrollToTop from '@/components/ScrollToTop';
 
 interface Movie {
   id: number;
@@ -39,6 +40,7 @@ export default async function MovieDetail({ params }: { params: Promise<{ id: st
 
   return (
     <div className="max-w-4xl mx-auto p-4 bg-gray-900 text-white">
+      <ScrollToTop />
       <h1 className="text-3xl font-bold mb-4 text-center">{movie.title}</h1>
       <div className="flex flex-col md:flex-row gap-8">
         <Image

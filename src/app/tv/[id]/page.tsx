@@ -2,57 +2,38 @@ import axios from 'axios';
 import Image from 'next/image';
 import Link from 'next/link';
 import ScrollToTop from '@/components/ScrollToTop';
+import EpisodeSelector from '@/components/EpisodeSelector';
+import type { TVShow, TVShow as SimilarTVShow } from '@/lib/types';
 
-interface Movie {
-  id: number;
-  title: string;
-  overview: string;
-  poster_path: string;
-  backdrop_path: string;
-  release_date: string;
-  vote_average: number;
-  genres: { id: number; name: string }[];
-  imdb_id: string;
-  runtime?: number;
-}
-
-interface SimilarMovie {
-  id: number;
-  title: string;
-  poster_path: string;
-  release_date: string;
-  vote_average: number;
-}
-
-async function getMovie(id: string) {
+async function getTVShow(id: string) {
   const apiKey = process.env.NEXT_PUBLIC_TMDB_API_KEY;
-  const movieRes = await axios.get(
-    `https://api.themoviedb.org/3/movie/${id}?api_key=${apiKey}&append_to_response=external_ids`
+  const showRes = await axios.get(
+    `https://api.themoviedb.org/3/tv/${id}?api_key=${apiKey}&append_to_response=external_ids`
   );
-  return movieRes.data;
+  return showRes.data;
 }
 
 async function getSimilar(id: string) {
   const apiKey = process.env.NEXT_PUBLIC_TMDB_API_KEY;
   const res = await axios.get(
-    `https://api.themoviedb.org/3/movie/${id}/similar?api_key=${apiKey}`
+    `https://api.themoviedb.org/3/tv/${id}/similar?api_key=${apiKey}`
   );
   return res.data.results;
 }
 
-export default async function MovieDetail({
+export default async function TVShowDetail({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const movie: Movie = await getMovie(id);
-  const similar: SimilarMovie[] = await getSimilar(id);
+  const show: TVShow = await getTVShow(id);
+  const similar: SimilarTVShow[] = await getSimilar(id);
 
   const ratingColor =
-    movie.vote_average >= 7.5
+    show.vote_average >= 7.5
       ? '#22c55e'
-      : movie.vote_average >= 6
+      : show.vote_average >= 6
       ? '#fbbf24'
       : '#ef4444';
 
@@ -61,7 +42,7 @@ export default async function MovieDetail({
       <ScrollToTop />
 
       {/* ── Backdrop Hero ──────────────────────────────────── */}
-      {movie.backdrop_path && (
+      {show.backdrop_path && (
         <div
           style={{
             position: 'relative',
@@ -71,8 +52,8 @@ export default async function MovieDetail({
           }}
         >
           <Image
-            src={`https://image.tmdb.org/t/p/original${movie.backdrop_path}`}
-            alt={movie.title}
+            src={`https://image.tmdb.org/t/p/original${show.backdrop_path}`}
+            alt={show.name}
             fill
             priority
             style={{ objectFit: 'cover', objectPosition: 'center 20%' }}
@@ -103,7 +84,7 @@ export default async function MovieDetail({
           maxWidth: '1100px',
           margin: '0 auto',
           padding: '0 clamp(1rem, 3vw, 2rem)',
-          marginTop: movie.backdrop_path ? '-180px' : '2rem',
+          marginTop: show.backdrop_path ? '-180px' : '2rem',
           position: 'relative',
           zIndex: 10,
         }}
@@ -136,8 +117,8 @@ export default async function MovieDetail({
               }}
             >
               <Image
-                src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
-                alt={movie.title}
+                src={`https://image.tmdb.org/t/p/w500${show.poster_path}`}
+                alt={show.name}
                 width={280}
                 height={420}
                 style={{ width: '100%', height: 'auto', display: 'block' }}
@@ -157,7 +138,7 @@ export default async function MovieDetail({
                   marginBottom: '1rem',
                 }}
               >
-                {movie.title}
+                {show.name}
               </h1>
 
               {/* Meta row */}
@@ -185,7 +166,7 @@ export default async function MovieDetail({
                     fontSize: '0.875rem',
                   }}
                 >
-                  ★ {movie.vote_average.toFixed(1)}
+                  ★ {show.vote_average.toFixed(1)}
                 </div>
 
                 <span
@@ -194,18 +175,18 @@ export default async function MovieDetail({
                     fontSize: '0.875rem',
                   }}
                 >
-                  {new Date(movie.release_date).getFullYear()}
+                  {show.first_air_date ? new Date(show.first_air_date).getFullYear() : 'N/A'}
                 </span>
 
-                {movie.runtime && (
+                {show.number_of_seasons && (
                   <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>
-                    {Math.floor(movie.runtime / 60)}h {movie.runtime % 60}m
+                    {show.number_of_seasons} {show.number_of_seasons === 1 ? 'Season' : 'Seasons'}
                   </span>
                 )}
               </div>
 
               {/* Genres */}
-              {movie.genres?.length > 0 && (
+              {show.genres && show.genres.length > 0 && (
                 <div
                   style={{
                     display: 'flex',
@@ -214,7 +195,7 @@ export default async function MovieDetail({
                     marginBottom: '1.5rem',
                   }}
                 >
-                  {movie.genres.map((g) => (
+                  {show.genres.map((g) => (
                     <span key={g.id} className="genre-badge">
                       {g.name}
                     </span>
@@ -232,36 +213,19 @@ export default async function MovieDetail({
                   maxWidth: '600px',
                 }}
               >
-                {movie.overview}
+                {show.overview}
               </p>
-
-              {/* Actions */}
-              <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                <Link href={`/watch/${movie.imdb_id}`} className="btn-primary">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                    <polygon points="5,3 19,12 5,21" />
-                  </svg>
-                  Watch Now
-                </Link>
-                <Link href="/" className="btn-secondary">
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <polyline points="15 18 9 12 15 6" />
-                  </svg>
-                  Browse More
-                </Link>
-              </div>
             </div>
           </div>
+
+          <hr className="section-divider" style={{ border: 'none' }} />
+
+          {/* Episode Selector Box embedded natively for TV Shows */}
+          <EpisodeSelector showId={id} showName={show.name} seasons={show.seasons || []} />
+
         </div>
 
-        {/* ── Similar Movies ────────────────────────────────── */}
+        {/* ── Similar TV Shows ────────────────────────────────── */}
         {similar.length > 0 && (
           <section style={{ marginTop: '5rem', paddingBottom: '2rem' }}>
             <div
@@ -272,7 +236,7 @@ export default async function MovieDetail({
                 marginBottom: '2rem',
               }}
             >
-              <h2 className="section-heading">Similar Movies</h2>
+              <h2 className="section-heading">Similar TV Shows</h2>
               <span
                 style={{
                   fontSize: '0.8rem',
@@ -296,7 +260,7 @@ export default async function MovieDetail({
             >
               {similar.slice(0, 8).map((sm) => (
                 <Link
-                  href={`/movie/${sm.id}`}
+                  href={`/tv/${sm.id}`}
                   key={sm.id}
                   style={{ textDecoration: 'none' }}
                 >
@@ -305,7 +269,7 @@ export default async function MovieDetail({
                       {sm.poster_path ? (
                         <Image
                           src={`https://image.tmdb.org/t/p/w342${sm.poster_path}`}
-                          alt={sm.title}
+                          alt={sm.name}
                           fill
                           style={{ objectFit: 'cover' }}
                           sizes="(max-width: 640px) 50vw, 25vw"
@@ -360,7 +324,7 @@ export default async function MovieDetail({
                             lineHeight: 1.3,
                           }}
                         >
-                          {sm.title}
+                          {sm.name}
                         </h3>
                       </div>
                     </div>
@@ -381,12 +345,12 @@ export default async function MovieDetail({
                           marginBottom: '0.2rem',
                         }}
                       >
-                        {sm.title}
+                        {sm.name}
                       </h3>
                       <span
                         style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}
                       >
-                        {sm.release_date?.slice(0, 4)}
+                        {sm.first_air_date ? new Date(sm.first_air_date).getFullYear() : 'N/A'}
                       </span>
                     </div>
                   </div>

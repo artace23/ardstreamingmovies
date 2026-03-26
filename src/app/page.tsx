@@ -4,100 +4,258 @@ import axios from 'axios';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-
-interface Movie {
-  id: number;
-  title: string;
-  poster_path: string;
-  release_date: string;
-  backdrop_path: string;
-  vote_average: number;
-}
+import type { Movie, TVShow } from '@/lib/types';
+import { useSearchParams, useRouter } from 'next/navigation';
 
 export default function Home() {
-  const [trending, setTrending] = useState<Movie[]>([]);
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  
+  // Default to movies, but respect ?category=tv if present
+  const initialCategory = searchParams.get('category') === 'tv' ? 'tv' : 'movie';
+  const [category, setCategory] = useState<'movie' | 'tv'>(initialCategory);
+  
+  const [trending, setTrending] = useState<(Movie | TVShow)[]>([]);
   const [loading, setLoading] = useState(true);
-  const [featuredMovie, setFeaturedMovie] = useState<Movie | null>(null);
+  const [featuredMedia, setFeaturedMedia] = useState<Movie | TVShow | null>(null);
+
+  useEffect(() => {
+    // Sync state with URL if it changes externally
+    const cat = searchParams.get('category');
+    if (cat === 'tv' || cat === 'movie') {
+      setCategory(cat);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const fetchTrending = async () => {
+      setLoading(true);
       try {
         const response = await axios.get(
-          `https://api.themoviedb.org/3/trending/movie/week?api_key=${process.env.NEXT_PUBLIC_TMDB_API_KEY}`
+          `https://api.themoviedb.org/3/trending/${category}/week?api_key=${process.env.NEXT_PUBLIC_TMDB_API_KEY}`
         );
         setTrending(response.data.results);
-        setFeaturedMovie(response.data.results[0]);
+        setFeaturedMedia(response.data.results[0]);
       } catch (error) {
-        console.error('Error fetching trending movies:', error);
+        console.error(`Error fetching trending ${category}:`, error);
       } finally {
         setLoading(false);
       }
     };
-
     fetchTrending();
-  }, []);
+  }, [category]);
+
+  const handleCategorySwitch = (newCat: 'movie' | 'tv') => {
+    setCategory(newCat);
+    router.push(`/?category=${newCat}`, { scroll: false });
+  };
+
+  const getTitle = (media: any) => media.title || media.name;
+  const getReleaseYear = (media: any) => 
+    media.release_date ? new Date(media.release_date).getFullYear() : 
+    media.first_air_date ? new Date(media.first_air_date).getFullYear() : '';
+  const getDetailLink = (media: any) => `/${category}/${media.id}`;
 
   if (loading) {
-    return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', gap: '2rem', padding: '2rem 1.5rem', paddingTop: 'var(--nav-height)' }}>
+        <div className="shimmer" style={{ width: '100%', height: '80vh', borderRadius: '20px' }} />
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '1rem' }}>
+          {[...Array(8)].map((_, i) => (
+            <div key={i} className="shimmer" style={{ height: '270px', borderRadius: '12px' }} />
+          ))}
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="container mx-auto p-4">
-      {featuredMovie && (
-        <div className="relative h-96 mb-8 rounded-lg overflow-hidden">
-          <Image
-            src={`https://image.tmdb.org/t/p/original${featuredMovie.backdrop_path}`}
-            alt={featuredMovie.title}
-            layout="fill"
-            objectFit="cover"
-            className="rounded-lg"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent flex items-end justify-center p-8">
-            <div className="text-center text-white">
-              <h2 className="text-4xl font-bold">{featuredMovie.title}</h2>
-              <p className="mt-2">{new Date(featuredMovie.release_date).getFullYear()}</p>
-              <Link
-                href={`/movie/${featuredMovie.id}`}
-                className="inline-block bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700 transition mt-4"
+    <div style={{ minHeight: '100vh' }}>
+      
+      {/* ── Category Switcher Floating Pill (Mobile Only) ──────── */}
+      <div className="mobile-dock-only" style={{ position: 'fixed', bottom: '2rem', left: '50%', transform: 'translateX(-50%)', zIndex: 100 }}>
+        <div style={{ 
+          display: 'flex', 
+          background: 'rgba(8, 10, 15, 0.85)', 
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          border: '1px solid var(--border)',
+          borderRadius: '40px',
+          padding: '0.375rem',
+          boxShadow: '0 20px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05)'
+        }}>
+          {['movie', 'tv'].map((type) => {
+            const isActive = category === type;
+            return (
+              <button
+                key={type}
+                onClick={() => handleCategorySwitch(type as 'movie' | 'tv')}
+                style={{
+                  position: 'relative',
+                  padding: '0.625rem 1.5rem',
+                  borderRadius: '30px',
+                  border: 'none',
+                  background: 'none',
+                  color: isActive ? '#fff' : 'var(--text-secondary)',
+                  fontWeight: 700,
+                  fontSize: '0.875rem',
+                  letterSpacing: '0.02em',
+                  cursor: 'pointer',
+                  zIndex: 1,
+                  transition: 'color 0.3s ease'
+                }}
               >
-                Watch Now
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
-      <h1 className="text-2xl font-bold mb-4">Trending Movies</h1>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {trending.map((movie) => (
-          <motion.div
-            key={movie.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            whileHover={{ scale: 1.05 }}
-          >
-            <Link href={`/movie/${movie.id}`}>
-              <div className="border rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition">
-                <div className="relative">
-                  <Image
-                    src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
-                    alt={movie.title}
-                    width={500}
-                    height={750}
-                    className="w-full h-auto"
+                {isActive && (
+                  <motion.div
+                    layoutId="activeCategory"
+                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                    style={{
+                      position: 'absolute',
+                      inset: 0,
+                      background: 'var(--accent)',
+                      borderRadius: '30px',
+                      zIndex: -1,
+                      boxShadow: '0 0 20px rgba(229,9,20,0.4)'
+                    }}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent flex items-end justify-center p-4">
-                    <div className="text-center text-white">
-                      <h2 className="text-lg font-semibold">{movie.title}</h2>
-                      <p className="text-sm">{movie.vote_average.toFixed(1)} ⭐</p>
+                )}
+                <span style={{ position: 'relative', zIndex: 2 }}>{type === 'movie' ? 'Movies' : 'TV Shows'}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ── Hero Section ──────────────────────────────────────── */}
+      {featuredMedia && (
+        <section style={{ position: 'relative', width: '100%', height: 'clamp(500px, 80vh, 720px)', overflow: 'hidden' }}>
+          <Image
+            src={`https://image.tmdb.org/t/p/original${featuredMedia.backdrop_path}`}
+            alt={getTitle(featuredMedia)}
+            fill
+            priority
+            style={{ objectFit: 'cover', objectPosition: 'center top' }}
+          />
+
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(8,10,15,0.97) 0%, rgba(8,10,15,0.75) 45%, rgba(8,10,15,0.2) 100%)' }} />
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(8,10,15,1) 0%, rgba(8,10,15,0.5) 30%, transparent 70%)' }} />
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(8,10,15,0.4) 0%, transparent 30%)' }} />
+
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'flex-end', padding: 'clamp(2rem, 5vw, 4rem)', maxWidth: '1280px', margin: '0 auto', left: 0, right: 0 }}>
+            <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }} style={{ maxWidth: '600px' }}>
+              
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(229, 9, 20, 0.15)', border: '1px solid rgba(229, 9, 20, 0.4)', borderRadius: '20px', padding: '0.3rem 0.875rem', marginBottom: '1.25rem' }}>
+                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent)', display: 'inline-block', animation: 'pulse 2s infinite' }} />
+                <span style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#ff6b6b' }}>
+                  {category === 'movie' ? 'Featured Movie' : 'Featured TV Show'}
+                </span>
+              </div>
+
+              <h1 style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.05, color: '#ffffff', marginBottom: '1rem', textShadow: '0 2px 20px rgba(0,0,0,0.5)' }}>
+                {getTitle(featuredMedia)}
+              </h1>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', color: '#fbbf24', fontWeight: 700, fontSize: '0.95rem' }}>
+                  ★ {featuredMedia.vote_average?.toFixed(1)}
+                </span>
+                <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>{getReleaseYear(featuredMedia)}</span>
+                <span style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '4px', padding: '2px 8px', fontSize: '0.7rem', fontWeight: 600, letterSpacing: '0.08em', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
+                  HD
+                </span>
+              </div>
+
+              {featuredMedia.overview && (
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: 1.7, marginBottom: '2rem', maxWidth: '520px', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                  {featuredMedia.overview}
+                </p>
+              )}
+
+              <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                <Link href={getDetailLink(featuredMedia)} className="btn-primary">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <polygon points="5,3 19,12 5,21" />
+                  </svg>
+                  {category === 'movie' ? 'Watch Now' : 'Episodes & Info'}
+                </Link>
+                <Link href={getDetailLink(featuredMedia)} className="btn-secondary">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="16" />
+                    <line x1="8" y1="12" x2="16" y2="12" />
+                  </svg>
+                  More Info
+                </Link>
+              </div>
+            </motion.div>
+          </div>
+        </section>
+      )}
+
+      {/* ── Trending Section ───────────────────────────────────── */}
+      <section style={{ maxWidth: '1280px', margin: '0 auto', padding: 'clamp(2rem, 5vw, 4rem) clamp(1rem, 3vw, 2rem)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem' }}>
+          <h2 className="section-heading">Trending {category === 'movie' ? 'Movies' : 'TV Shows'}</h2>
+          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', borderRadius: '20px', padding: '0.3rem 0.875rem' }}>
+            {trending.length} titles
+          </span>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '1.25rem', paddingBottom: '3rem' }}>
+          {trending.map((media, i) => (
+            <motion.div key={media.id} initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: Math.min(i * 0.05, 0.5), ease: [0.22, 1, 0.36, 1] }}>
+              <Link href={getDetailLink(media)} style={{ textDecoration: 'none' }}>
+                <div className="movie-card card-glow">
+                  <div style={{ position: 'relative', aspectRatio: '2/3' }}>
+                    <Image
+                      src={`https://image.tmdb.org/t/p/w500${media.poster_path}`}
+                      alt={getTitle(media)}
+                      fill
+                      style={{ objectFit: 'cover' }}
+                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+                    />
+                    <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '50%', background: 'linear-gradient(to top, rgba(8,10,15,0.9) 0%, transparent 100%)', pointerEvents: 'none' }} />
+
+                    <div className="card-overlay">
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.5rem' }}>
+                        <span style={{ color: '#fbbf24', fontSize: '0.8rem', fontWeight: 700 }}>★ {media.vote_average.toFixed(1)}</span>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{getReleaseYear(media)}</span>
+                      </div>
+                      <h3 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#fff', lineHeight: 1.3, marginBottom: '0.75rem' }}>{getTitle(media)}</h3>
+                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', background: 'var(--accent)', color: '#fff', fontSize: '0.75rem', fontWeight: 700, padding: '0.4rem 0.875rem', borderRadius: '6px', letterSpacing: '0.03em' }}>
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21" /></svg>
+                        {category === 'movie' ? 'Watch' : 'Episodes'}
+                      </div>
                     </div>
+
+                    {i < 3 && (
+                      <div style={{ position: 'absolute', top: '10px', left: '10px', width: '28px', height: '28px', borderRadius: '50%', background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 900, color: '#fff', boxShadow: '0 2px 8px rgba(229,9,20,0.6)', zIndex: 5 }}>
+                        #{i + 1}
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ padding: '0.75rem', background: 'var(--bg-card)' }}>
+                    <h3 style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: '0.25rem' }}>{getTitle(media)}</h3>
+                    <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{getReleaseYear(media)}</span>
                   </div>
                 </div>
-              </div>
-            </Link>
-          </motion.div>
-        ))}
-      </div>
+              </Link>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.4; }
+        }
+        @media (min-width: 768px) {
+          .mobile-dock-only {
+            display: none !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

@@ -18,7 +18,7 @@ interface VideoPlayerProps {
 export default function VideoPlayer({ type, imdbId, tmdbId, season, episode }: VideoPlayerProps) {
   // Using user's requested custom colors for VidLink
   const customColors = `primaryColor=e50914&secondaryColor=94a3b8&iconColor=eefdec&icons=vid&player=default&title=true&poster=true&autoplay=false&nextbutton=false`;
-  
+
   const movieServers: Server[] = [
     {
       name: 'Server 1',
@@ -30,7 +30,7 @@ export default function VideoPlayer({ type, imdbId, tmdbId, season, episode }: V
     },
     {
       name: 'Server 3',
-      getUrl: () => `https://vidsrc.net/embed/movie?imdb=${imdbId}`
+      getUrl: () => `https://vsembed.su/embed/movie?imdb=${imdbId}`
     }
   ];
 
@@ -45,7 +45,7 @@ export default function VideoPlayer({ type, imdbId, tmdbId, season, episode }: V
     },
     {
       name: 'Server 3',
-      getUrl: () => `https://vidsrc.net/embed/tv?tmdb=${tmdbId}&season=${season}&episode=${episode}`
+      getUrl: () => `https://vsembed.su/embed/tv?tmdb=${tmdbId}&season=${season}&episode=${episode}`
     }
   ];
 
@@ -57,7 +57,7 @@ export default function VideoPlayer({ type, imdbId, tmdbId, season, episode }: V
       {/* Server Selector */}
       <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center', marginBottom: '0.5rem' }}>
         <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', fontWeight: 600, marginRight: '0.5rem' }}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ display: 'inline-block', marginRight: '4px', verticalAlign: 'text-bottom' }}><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ display: 'inline-block', marginRight: '4px', verticalAlign: 'text-bottom' }}><rect x="2" y="2" width="20" height="8" rx="2" ry="2" /><rect x="2" y="14" width="20" height="8" rx="2" ry="2" /><line x1="6" y1="6" x2="6.01" y2="6" /><line x1="6" y1="18" x2="6.01" y2="18" /></svg>
           Servers:
         </span>
         {servers.map((server, index) => (

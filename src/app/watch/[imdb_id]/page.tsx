@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation';
+import VideoPlayer from '@/components/VideoPlayer';
 
 export default async function WatchPage({
   params,
@@ -82,41 +83,7 @@ export default async function WatchPage({
           </div>
         </div>
 
-        {/* Player Container */}
-        <div
-          style={{
-            position: 'relative',
-            borderRadius: '16px',
-            overflow: 'hidden',
-            background: '#000',
-            boxShadow:
-              '0 0 0 1px var(--border), 0 40px 100px rgba(0,0,0,0.8), 0 0 50px rgba(229,9,20,0.08)',
-          }}
-        >
-          {/* Aspect ratio wrapper */}
-          <div
-            style={{
-              position: 'relative',
-              paddingTop: '56.25%', /* 16:9 */
-            }}
-          >
-            <iframe
-              src={`https://vidlink.pro/movie/${imdb_id}?primaryColor=63b8bc&secondaryColor=a2a2a2&iconColor=eefdec&icons=default&player=jw&title=true&poster=true&autoplay=true&nextbutton=true`}
-              allow="autoplay; fullscreen"
-              scrolling="no"
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%',
-                border: 'none',
-                display: 'block',
-                overflow: 'hidden',
-              }}
-            />
-          </div>
-        </div>
+        <VideoPlayer type="movie" imdbId={imdb_id} />
 
         {/* Notice */}
         <div

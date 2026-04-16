@@ -2,6 +2,8 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import axios from 'axios';
 import type { TVShow } from '@/lib/types';
+import VideoPlayer from '@/components/VideoPlayer';
+import WatchEpisodeList from '@/components/WatchEpisodeList';
 
 async function getTVShow(id: string) {
   try {
@@ -138,41 +140,13 @@ export default async function TVWatchPage({
           </div>
         </div>
 
-        {/* Player Container */}
-        <div
-          style={{
-            position: 'relative',
-            borderRadius: '16px',
-            overflow: 'hidden',
-            background: '#000',
-            boxShadow:
-              '0 0 0 1px var(--border), 0 40px 100px rgba(0,0,0,0.8), 0 0 50px rgba(229,9,20,0.08)',
-          }}
-        >
-          {/* Aspect ratio wrapper */}
-          <div
-            style={{
-              position: 'relative',
-              paddingTop: '56.25%', /* 16:9 */
-            }}
-          >
-            <iframe
-              src={`https://vidlink.pro/tv/${tmdb_id}/${currentSeasonStr}/${currentEpisodeStr}?primaryColor=63b8bc&secondaryColor=a2a2a2&iconColor=eefdec&icons=default&player=jw&title=true&poster=true&autoplay=true&nextbutton=true`}
-              allow="autoplay; fullscreen"
-              scrolling="no"
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%',
-                border: 'none',
-                display: 'block',
-                overflow: 'hidden',
-              }}
-            />
-          </div>
-        </div>
+        {/* Player Container via VideoPlayer */}
+        <VideoPlayer 
+          type="tv" 
+          tmdbId={tmdb_id} 
+          season={currentSeasonStr} 
+          episode={currentEpisodeStr} 
+        />
 
         {/* Notice */}
         <div
@@ -211,10 +185,12 @@ export default async function TVWatchPage({
             </p>
           </div>
           
-          <Link href={`/tv/${tmdb_id}`} style={{ fontSize: '0.85rem', color: 'var(--text-primary)', textDecoration: 'none', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }} className="hover:text-accent transition-colors">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
-            All Episodes
-          </Link>
+          <WatchEpisodeList 
+            tmdbId={tmdb_id}
+            showName={show?.name || 'TV Show'}
+            currentSeason={currentSeason}
+            seasons={show?.seasons}
+          />
         </div>
       </div>
     </div>

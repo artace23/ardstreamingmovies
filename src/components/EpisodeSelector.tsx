@@ -11,13 +11,14 @@ interface EpisodeSelectorProps {
   showId: string;
   showName: string;
   seasons: Season[];
+  defaultSeason?: number;
 }
 
-export default function EpisodeSelector({ showId, showName, seasons }: EpisodeSelectorProps) {
+export default function EpisodeSelector({ showId, showName, seasons, defaultSeason }: EpisodeSelectorProps) {
   // Filter out season 0 (Specials) if preferred, or keep it. We'll sort numerically.
   const validSeasons = seasons.filter(s => s.season_number > 0).sort((a, b) => a.season_number - b.season_number);
   
-  const [selectedSeason, setSelectedSeason] = useState<number>(validSeasons[0]?.season_number || 1);
+  const [selectedSeason, setSelectedSeason] = useState<number>(defaultSeason || validSeasons[0]?.season_number || 1);
   const [episodes, setEpisodes] = useState<Episode[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
 

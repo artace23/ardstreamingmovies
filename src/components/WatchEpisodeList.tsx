@@ -9,9 +9,10 @@ interface WatchEpisodeListProps {
   showName: string;
   seasons?: Season[];
   currentSeason: number;
+  currentEpisode: number;
 }
 
-export default function WatchEpisodeList({ tmdbId, showName, seasons, currentSeason }: WatchEpisodeListProps) {
+export default function WatchEpisodeList({ tmdbId, showName, seasons, currentSeason, currentEpisode }: WatchEpisodeListProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   if (!seasons) return null;
@@ -50,7 +51,7 @@ export default function WatchEpisodeList({ tmdbId, showName, seasons, currentSea
           </button>
           
           <div style={{ marginTop: '-1rem' }}>
-            <EpisodeSelector showId={tmdbId} showName={showName} seasons={seasons} defaultSeason={currentSeason} />
+            <EpisodeSelector showId={tmdbId} showName={showName} seasons={seasons} defaultSeason={currentSeason} currentEpisode={currentEpisode} />
           </div>
         </div>
       )}

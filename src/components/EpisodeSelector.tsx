@@ -12,9 +12,10 @@ interface EpisodeSelectorProps {
   showName: string;
   seasons: Season[];
   defaultSeason?: number;
+  currentEpisode?: number;
 }
 
-export default function EpisodeSelector({ showId, showName, seasons, defaultSeason }: EpisodeSelectorProps) {
+export default function EpisodeSelector({ showId, showName, seasons, defaultSeason, currentEpisode }: EpisodeSelectorProps) {
   // Filter out season 0 (Specials) if preferred, or keep it. We'll sort numerically.
   const validSeasons = seasons.filter(s => s.season_number > 0).sort((a, b) => a.season_number - b.season_number);
   
@@ -100,10 +101,18 @@ export default function EpisodeSelector({ showId, showName, seasons, defaultSeas
                   display: 'flex',
                   gap: '1rem',
                   padding: '1rem',
-                  background: 'rgba(255, 255, 255, 0.02)',
-                  border: '1px solid var(--border)',
+                  background: ep.episode_number === currentEpisode && selectedSeason === defaultSeason
+                    ? 'rgba(229, 9, 20, 0.08)'
+                    : 'rgba(255, 255, 255, 0.02)',
+                  border: ep.episode_number === currentEpisode && selectedSeason === defaultSeason
+                    ? '1px solid rgba(229, 9, 20, 0.45)'
+                    : '1px solid var(--border)',
                   borderRadius: '12px',
-                  alignItems: 'center'
+                  alignItems: 'center',
+                  boxShadow: ep.episode_number === currentEpisode && selectedSeason === defaultSeason
+                    ? '0 0 16px rgba(229, 9, 20, 0.12)'
+                    : 'none',
+                  transition: 'all 0.2s ease',
                 }}
               >
                 {/* Thumbnail */}
@@ -128,11 +137,24 @@ export default function EpisodeSelector({ showId, showName, seasons, defaultSeas
 
                 {/* Info */}
                 <div style={{ flex: 1, minWidth: 0, paddingRight: '1rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.75rem', marginBottom: '0.25rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.75rem', marginBottom: '0.25rem', flexWrap: 'wrap' }}>
                     <span style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-muted)' }}>{ep.episode_number}</span>
                     <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {ep.name}
                     </h3>
+                    {ep.episode_number === currentEpisode && selectedSeason === defaultSeason && (
+                      <span style={{
+                        display: 'inline-flex', alignItems: 'center', gap: '4px',
+                        background: 'var(--accent)', color: '#fff',
+                        fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.05em',
+                        padding: '2px 8px', borderRadius: '100px',
+                        textTransform: 'uppercase', flexShrink: 0,
+                        boxShadow: '0 0 8px rgba(229,9,20,0.4)'
+                      }}>
+                        <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#fff', display: 'inline-block' }} />
+                        Now Playing
+                      </span>
+                    )}
                   </div>
                   <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: 1.5 }}>
                     {ep.overview || "No exact overview provided..."}

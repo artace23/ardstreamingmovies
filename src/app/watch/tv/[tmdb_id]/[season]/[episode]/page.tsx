@@ -189,6 +189,7 @@ export default async function TVWatchPage({
             tmdbId={tmdb_id}
             showName={show?.name || 'TV Show'}
             currentSeason={currentSeason}
+            currentEpisode={currentEpisode}
             seasons={show?.seasons}
           />
         </div>

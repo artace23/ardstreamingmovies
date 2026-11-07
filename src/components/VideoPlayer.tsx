@@ -34,7 +34,7 @@ export default function VideoPlayer({ type, imdbId, tmdbId, season, episode }: V
     },
     {
       name: 'Server 4',
-      getUrl: () => `https://godriveplayer.com/player.php?imdb=${imdbId}`
+      getUrl: () => `https://cinesrc.net/embed/movie/${imdbId}`
     }
   ];
 
@@ -50,10 +50,6 @@ export default function VideoPlayer({ type, imdbId, tmdbId, season, episode }: V
     {
       name: 'Server 3',
       getUrl: () => `https://vsembed.su/embed/tv?tmdb=${tmdbId}&season=${season}&episode=${episode}`
-    },
-    {
-      name: 'Server 4',
-      getUrl: () => `https://godriveplayer.com/player.php?type=series&tmdb=${tmdbId}&season=${season}&episode=${episode}`
     }
   ];
 

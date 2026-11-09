@@ -50,6 +50,10 @@ export default function VideoPlayer({ type, imdbId, tmdbId, season, episode }: V
     {
       name: 'Server 3',
       getUrl: () => `https://vsembed.su/embed/tv?tmdb=${tmdbId}&season=${season}&episode=${episode}`
+    },
+    {
+      name: 'Server 4',
+      getUrl: () => `https://cinesrc.st/embed/movie/${imdbId}?s=${season}&e=${episode}`
     }
   ];
 

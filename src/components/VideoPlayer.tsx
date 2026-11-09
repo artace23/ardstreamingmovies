@@ -34,7 +34,7 @@ export default function VideoPlayer({ type, imdbId, tmdbId, season, episode }: V
     },
     {
       name: 'Server 4',
-      getUrl: () => `https://cinesrc.net/embed/movie/${imdbId}`
+      getUrl: () => `https://cinesrc.st/embed/movie/${imdbId}`
     }
   ];
 

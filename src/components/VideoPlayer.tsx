@@ -21,8 +21,8 @@ export default function VideoPlayer({ type, imdbId, tmdbId, season, episode }: V
 
   const movieServers: Server[] = [
     {
-      name: 'Server 1',
-      getUrl: () => `https://vidlink.pro/movie/${imdbId || tmdbId}?${customColors}`
+      name: 'Server 1 (Stable)',
+      getUrl: () => `https://cinesrc.st/embed/movie/${imdbId}`
     },
     {
       name: 'Server 2',
@@ -34,14 +34,14 @@ export default function VideoPlayer({ type, imdbId, tmdbId, season, episode }: V
     },
     {
       name: 'Server 4',
-      getUrl: () => `https://cinesrc.st/embed/movie/${imdbId}`
+      getUrl: () => `https://vidlink.pro/movie/${imdbId || tmdbId}?${customColors}`
     }
   ];
 
   const tvServers: Server[] = [
     {
-      name: 'Server 1',
-      getUrl: () => `https://vidlink.pro/tv/${tmdbId}/${season}/${episode}?${customColors}`
+      name: 'Server 1 (Stable)',
+      getUrl: () => `https://cinesrc.st/embed/movie/${imdbId}?s=${season}&e=${episode}`
     },
     {
       name: 'Server 2',
@@ -53,7 +53,7 @@ export default function VideoPlayer({ type, imdbId, tmdbId, season, episode }: V
     },
     {
       name: 'Server 4',
-      getUrl: () => `https://cinesrc.st/embed/movie/${imdbId}?s=${season}&e=${episode}`
+      getUrl: () => `https://vidlink.pro/tv/${tmdbId}/${season}/${episode}?${customColors}`
     }
   ];
 
